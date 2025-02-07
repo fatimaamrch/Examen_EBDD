@@ -3,7 +3,17 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise');
 const fs = require('fs');
+const categories =  require('./categories');
+const Client = require('./client'); 
+const Produit = require('./produit');
+const Commande = require('./commandes');
+const Utilisateur = require('./utilisateur'); 
+const { verifyToken, isAdmin } = require('./midelware');
 
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const {Op} = require('sequelize');
 
 const app = express();
 app.use(express.json());
@@ -43,93 +53,196 @@ const initDB = async () => {
 
 initDB().then(connection => {
 
-    // Gestion des produits
-    app.post('/produits', async (req, res) => {
-        const { nom, description, prix_unitaire, quantite_stock, categorie_id } = req.body;
-        const sql = 'INSERT INTO Produits (nom, description, prix_unitaire, quantite_stock, categorie_id) VALUES (?, ?, ?, ?, ?)';
-        await connection.query(sql, [nom, description, prix_unitaire, quantite_stock, categorie_id]);
-        res.status(201).json({ message: 'Produit ajouté avec succès' });
+    app.get('/categories', async (req, res) => {
+        const categorie = await categories.findAll();
+        res.json(categorie);
+    });
+
+
+    app.get('/clients', async (req, res) => {
+        try {
+            const clients = await Client.findAll();
+            res.json(clients);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Erreur lors de la récupération des clients' });
+        }
     });
 
     app.get('/produits', async (req, res) => {
-        const [result] = await connection.query('SELECT * FROM Produits');
-        res.json(result);
-    });
-
-    app.get('/produits/injection', async (req, res) => {
-        const { nom } = req.query;
-        const [result] = await connection.query(`SELECT * FROM Produits WHERE nom='${nom}'`);
-        res.json(result);
-    });
-
-
-    app.get('/produits/:id', async (req, res) => {
-        const [result] = await connection.query('SELECT * FROM Produits WHERE id = ?', [req.params.id]);
-        if (result.length === 0) {
-            return res.status(404).json({ message: 'Produit non trouvé' });
+        try {
+            const produits = await Produit.findAll();
+            res.json(produits);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Erreur lors de la récupération des produits' });
         }
-        res.json(result[0]);
     });
 
-    app.put('/produits/:id', async (req, res) => {
-        const { nom, description, prix_unitaire, quantite_stock, categorie_id } = req.body;
-        const sql = 'UPDATE Produits SET nom = ?, description = ?, prix = ?, stock = ?, categorie_id = ? WHERE id = ?';
-        await connection.query(sql, [nom, description, prix_unitaire, quantite_stock, categorie_id, req.params.id]);
-        res.json({ message: 'Produit mis à jour avec succès' });
+    app.get('/commandes/:clientId', async (req, res) => {
+        try {
+            const clientId = req.params.clientId;
+            const commandes = await Commande.findAll({
+                where: { client_id: clientId },
+                include: [{
+                    model: Client,
+                    attributes: ['nom', 'prenom']
+                }]
+            });
+            res.json(commandes);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Erreur lors de la récupération des commandes' });
+        }
     });
 
-    app.delete('/produits/:id', async (req, res) => {
-        await connection.query('DELETE FROM Produits WHERE id = ?', [req.params.id]);
-        res.json({ message: 'Produit supprimé avec succès' });
-    });
-
-    // Gestion des clients
-    app.post('/clients', async (req, res) => {
-        const { nom, adresse, telephone } = req.body;
-        const sql = 'INSERT INTO Clients (nom, adresse, telephone) VALUES (?, ?, ?)';
-        await connection.query(sql, [nom, adresse, telephone]);
-        res.status(201).json({ message: 'Client ajouté avec succès' });
-    });
-
-    app.get('/clients', async (req, res) => {
-        const [result] = await connection.query('SELECT * FROM Clients');
-        res.json(result);
-    });
-
-    // Gestion des commandes
-    app.post('/commandes', async (req, res) => {
-        const { client_id } = req.body;
-        const sql = 'INSERT INTO Commandes (client_id, date_commande) VALUES (?, NOW())';
-        await connection.query(sql, [client_id]);
-        res.status(201).json({ message: 'Commande créée avec succès' });
-    });
-
+    // Lister les commandes dans une période donnée
     app.get('/commandes', async (req, res) => {
-        const [result] = await connection.query('SELECT * FROM Commandes');
-        res.json(result);
-    });
+        const { start, end } = req.query;
 
-    app.get('/commandes/:id', async (req, res) => {
-        const [result] = await connection.query('SELECT * FROM Commandes WHERE id = ?', [req.params.id]);
-        if (result.length === 0) {
-            return res.status(404).json({ message: 'Commande non trouvée' });
+        
+        if (!start || !end) {
+            return res.status(400).json({ message: 'Les paramètres start et end sont requis' });
         }
-        res.json(result[0]);
+
+        try {
+            const commandes = await Commande.findAll({
+                where: {
+                    date_commande: {
+                        [Op.between]: [new Date(start), new Date(end)] 
+                    }
+                }
+            });
+            res.json(commandes);
+        } catch (err) {
+            res.status(500).json({ message: 'Erreur lors de la récupération des commandes dans la période', error: err.message });
+        }
     });
 
-    // Gestion des lignes de commande
-    app.post('/lignes_commande', async (req, res) => {
-        const { commande_id, produit_id, quantite, prix_unitaire } = req.body;
-        const sql = 'INSERT INTO Lignes_Commande (commande_id, produit_id, quantite, prix_unitaire) VALUES (?, ?, ?, ?)';
-        await connection.query(sql, [commande_id, produit_id, quantite, prix_unitaire]);
-        res.status(201).json({ message: 'Ligne de commande ajoutée avec succès' });
+    // Lister les commandes d'un client spécifique
+    app.get('/clients/:id/commandes', async (req, res) => {
+        try {
+            const commandes = await Commande.findAll({ where: { client_id: req.params.id } });
+            if (commandes.length === 0) {
+                return res.status(404).json({ message: 'Aucune commande trouvée pour ce client' });
+            }
+            res.json(commandes);
+        } catch (err) {
+            res.status(500).json({ message: 'Erreur lors de la récupération des commandes du client', error: err.message });
+        }
     });
 
-    app.get('/lignes_commande', async (req, res) => {
-        const [result] = await connection.query('SELECT * FROM Lignes_Commande');
-        res.json(result);
+    // Lister les commandes contenant un produit précis
+    app.get('/produits/:id/commandes', async (req, res) => {
+        try {
+            const commandes = await Commande.findAll({
+                include: {
+                    model: Ligne_Commande,
+                    where: { produit_id: req.params.id },
+                },
+            });
+            if (commandes.length === 0) {
+                return res.status(404).json({ message: 'Aucune commande contenant ce produit trouvée' });
+            }
+            res.json(commandes);
+        } catch (err) {
+            res.status(500).json({ message: 'Erreur lors de la récupération des commandes contenant ce produit', error: err.message });
+        }
     });
 
+
+    app.get('/recherche-commandes', async (req, res) => {
+        const { clientId, startDate, endDate, statut, produitId } = req.query;
+    
+        try {
+            const [result] = await connection.query('CALL recherche_commandes(?, ?, ?, ?, ?)', [
+                clientId || null,
+                startDate || null,
+                endDate || null,
+                statut || null,
+                produitId || null
+            ]);
+            res.json(result);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Erreur lors de la recherche des commandes', error: error.message });
+        }
+    });
+
+    app.get('/statistiques-ventes', async (req, res) => {
+        const { startDate, endDate } = req.query;
+    
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: 'Les paramètres startDate et endDate sont requis' });
+        }
+    
+        try {
+            const [result] = await connection.query('CALL statistiques_ventes(?, ?)', [startDate, endDate]);
+            res.json(result);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Erreur lors de la récupération des statistiques de vente', error: error.message });
+        }
+    });
+
+    app.post('/gestion-stock', async (req, res) => {
+        const { clientId, produits } = req.body;
+    
+        if (!clientId || !produits || produits.length === 0) {
+            return res.status(400).json({ message: 'Client et produits sont requis' });
+        }
+    
+        try {
+           
+            const [result] = await connection.query('CALL gestion_stock(?, ?)', [clientId, JSON.stringify(produits)]);
+            res.json({ message: 'Commande traitée avec succès', result });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Erreur lors de la gestion du stock', error: error.message });
+        }
+    });
+
+    app.get('/produits/stock-faible', async (req, res) => {
+        const { seuil } = req.query;
+    
+        if (!seuil) {
+            return res.status(400).json({ message: 'Le paramètre seuil est requis' });
+        }
+    
+        try {
+            const [result] = await connection.query('CALL stock_faible(?)', [seuil]);
+            res.json(result);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Erreur lors de la récupération des produits avec stock faible', error: error.message });
+        }
+    });
+
+    // Gestion de la connexion
+    app.post('/register', async (req, res) => {
+        const { nom, email, password, role } = req.body;
+        const hash = await bcrypt.hash(password, 10);
+        const user = await Utilisateur.create({ nom, email, password: hash, role });
+        res.status(201).json({ message: `Utilisateur ${user.nom} créé avec succès !` });
+    });
+        
+    app.post('/login', async (req, res) => {
+        const { email, password } = req.body;
+        const user = await Utilisateur.findOne({ where: { email } });
+
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ message: "Identifiants incorrects." });
+        }
+
+        const token = jwt.sign({ id: user.id, role: user.role }, 'secret_key', { expiresIn: '1h' });
+        res.json({ token });
+    });
+        
+    // Exemple d'une route protégée accessible uniquement aux admins
+    app.get('/admin/dashboard', verifyToken, isAdmin, (req, res) => {
+        res.json({ message: 'Bienvenue sur le tableau de bord admin', user: req.user });
+    })
+        
     const PORT = 3000;
     app.listen(PORT, () => {
         console.log(`Serveur démarré sur le port ${PORT}`);
