@@ -1,0 +1,175 @@
+Document de Synthèse : 
+
+1. Présentation du Schéma de la Base de Données
+
+Le schéma de la base de données gestion_stock est conçu pour gérer un système de gestion des stocks, incluant des produits, des catégories, des fournisseurs, des clients et des commandes. Voici les entités clés et leurs relations.
+
+Entités et leurs champs :
+
+    Categories :
+    Cette table contient les catégories de produits. Chaque catégorie possède un identifiant unique et un nom.
+        Champs :
+            id (INT, AUTO_INCREMENT, PRIMARY KEY) : Identifiant unique de la catégorie.
+            nom (VARCHAR(255), UNIQUE, NOT NULL) : Nom de la catégorie.
+
+
+    Produits :
+    Cette table contient les informations sur les produits, y compris le prix unitaire, la quantité en stock et la catégorie à laquelle le produit appartient.
+        Champs :
+            id (INT, AUTO_INCREMENT, PRIMARY KEY) : Identifiant unique du produit.
+            nom (VARCHAR(255), NOT NULL) : Nom du produit.
+            description (TEXT) : Description du produit.
+            prix_unitaire (DECIMAL(10,2), NOT NULL) : Prix unitaire du produit.
+            quantite_stock (INT, NOT NULL, DEFAULT 0) : Quantité en stock du produit.
+            categorie_id (INT, NOT NULL) : Identifiant de la catégorie (clé étrangère vers categories).
+
+
+    Fournisseurs :
+    Cette table contient les informations des fournisseurs de produits, incluant leur nom, contact et adresse.
+        Champs :
+            id (INT, AUTO_INCREMENT, PRIMARY KEY) : Identifiant unique du fournisseur.
+            nom (VARCHAR(255), NOT NULL) : Nom du fournisseur.
+            contact (VARCHAR(255)) : Contact du fournisseur.
+            adresse (TEXT) : Adresse du fournisseur.
+
+
+    Produits_Fournisseurs :
+    Cette table est une table d'association entre les produits et leurs fournisseurs. Elle permet de suivre les prix d'achat des produits auprès de chaque fournisseur ainsi que le délai de livraison.
+        Champs :
+            produit_id (INT, NOT NULL) : Identifiant du produit (clé étrangère vers produits).
+            fournisseur_id (INT, NOT NULL) : Identifiant du fournisseur (clé étrangère vers fournisseurs).
+            prix_achat (DECIMAL(10,2), NOT NULL) : Prix d'achat du produit.
+            delai_livraison (INT, NOT NULL) : Délai de livraison du produit, en jours.
+            Clé primaire : (produit_id, fournisseur_id).
+
+
+    Clients :
+    Cette table contient les informations des clients. Chaque client a un identifiant, un nom, un prénom, une adresse email et un téléphone.
+        Champs :
+            id (INT, AUTO_INCREMENT, PRIMARY KEY) : Identifiant unique du client.
+            nom (VARCHAR(255), NOT NULL) : Nom du client.
+            prenom (VARCHAR(255), NOT NULL) : Prénom du client.
+            email (VARCHAR(255), UNIQUE, NOT NULL) : Email du client.
+            telephone (VARCHAR(20)) : Numéro de téléphone du client.
+            adresse (TEXT) : Adresse du client.
+
+
+    Commandes :
+    Cette table contient les informations relatives aux commandes passées par les clients. Chaque commande est liée à un client et peut avoir un statut.
+        Champs :
+            id (INT, AUTO_INCREMENT, PRIMARY KEY) : Identifiant unique de la commande.
+            client_id (INT, NOT NULL) : Identifiant du client qui a passé la commande (clé étrangère vers clients).
+            date_commande (DATETIME, DEFAULT CURRENT_TIMESTAMP) : Date de la commande.
+            statut (ENUM('en attente', 'validée', 'expédiée', 'annulée'), DEFAULT 'en attente') : Statut de la commande.
+
+
+    Lignes_Commande :
+    Cette table contient les informations sur les produits commandés dans une commande. Chaque ligne de commande est associée à un produit et à une quantité.
+        Champs :
+            id (INT, AUTO_INCREMENT, PRIMARY KEY) : Identifiant unique de la ligne de commande.
+            commande_id (INT, NOT NULL) : Identifiant de la commande (clé étrangère vers commandes).
+            produit_id (INT, NOT NULL) : Identifiant du produit commandé (clé étrangère vers produits).
+            quantite (INT, NOT NULL) : Quantité du produit commandé.
+            prix_unitaire (DECIMAL(10,2), NOT NULL) : Prix unitaire du produit au moment de la commande.
+
+
+
+    Relations entre les entités :
+
+
+    Categories - Produits : Un produit appartient à une seule catégorie, mais une catégorie peut avoir plusieurs produits. C'est une relation 1:N.
+    Produits - Produits_Fournisseurs : Un produit peut être fourni par plusieurs fournisseurs, et un fournisseur peut fournir plusieurs produits. C'est une relation N:M.
+    Clients - Commandes : Un client peut passer plusieurs commandes, mais une commande appartient à un seul client. C'est une relation 1:N.
+    Commandes - Lignes_Commande : Une commande peut avoir plusieurs lignes de commande, mais une ligne de commande appartient à une seule commande. C'est une relation 1:N.
+    Produits - Lignes_Commande : Un produit peut apparaître dans plusieurs lignes de commande, mais une ligne de commande contient un seul produit. C'est une relation 1:N.
+
+
+2. Liste des Endpoints de l'API
+
+    Endpoints Utilisateur
+
+        POST /register :
+
+            Paramètres : nom, prenom, email, telephone, adresse.
+
+            Retour JSON :
+            {
+            "message": "Utilisateur créé avec succès"
+            }
+
+        POST /login :
+
+            Paramètres : email, password.
+
+            Retour JSON :
+            {
+            "token": "jwt_token"
+            }
+
+
+    Endpoints Produits
+        GET /produits :
+
+        Retour JSON :
+        [
+        {
+            "id": 1,
+            "nom": "Produit A",
+            "prix_unitaire": 25.00,
+            "quantite_stock": 100
+        }
+        ]
+
+        POST /produits :
+
+        Paramètres : nom, description, prix_unitaire, quantite_stock, categorie_id.
+
+        Retour JSON :
+        {
+        "message": "Produit ajouté avec succès"
+        }
+
+
+    Endpoints Commandes
+        POST /commandes :
+
+        Paramètres : client_id, produits (array avec produit_id, quantite).
+
+        Retour JSON :
+        {
+        "message": "Commande passée avec succès",
+        "id_commande": 123
+        }
+
+        GET /commandes/:id :
+
+        Retour JSON :
+        {
+        "id": 123,
+        "client_id": 1,
+        "date_commande": "2025-02-09",
+        "statut": "validée",
+        "produits": [
+            {
+            "id": 1,
+            "nom": "Produit A",
+            "quantite": 2,
+            "prix_unitaire": 25.00
+            }
+        ]
+        }
+
+
+3. Résumé de l'Audit V1 et Problèmes Détectés
+
+    Problèmes détectés en V1 :
+        Sécurité des données : La clé JWT était codée en dur dans le code, exposant ainsi des risques de sécurité.
+        Injections SQL : L'absence de requêtes paramétrées rendait l'application vulnérable aux attaques par injection SQL.
+        Gestion des erreurs : La gestion des erreurs n'était pas suffisamment robuste, ce qui pouvait entraîner des crashs ou des informations sensibles dans les messages d'erreur.
+        Validation des entrées utilisateurs : Il n'y avait pas de validation systématique des données fournies par les utilisateurs, ce qui pouvait conduire à des entrées malformées ou malveillantes.
+
+    Solutions Adoptées en V2 :
+        Cryptage des mots de passe : Utilisation de la bibliothèque bcrypt pour le cryptage des mots de passe.
+        Requêtes paramétrées : Pour éviter les attaques par injection SQL, des requêtes paramétrées sont utilisées pour interagir avec la base de données, garantissant ainsi une meilleure sécurité.
+        Amélioration de la gestion des erreurs : Un meilleur traitement des erreurs est mis en place avec des blocs try...catch et des retours d'erreur plus détaillés pour chaque endpoint.
+        
