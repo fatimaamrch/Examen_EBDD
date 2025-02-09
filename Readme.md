@@ -51,11 +51,11 @@ Cette application est une API REST permettant de gérer un stock de produits, le
 
   `DB_HOST=localhost`
 
-  `DB_USER=ton_utilisateur_mysql`
+  `DB_USER=root`
 
-  `DB_PASSWORD=ton_mot_de_passe_mysql`
+  `DB_PASSWORD=yourpassword`
 
-  `DB_PORT=3306`
+  `DB_PORT=3307`
 
 **Lancer l'application :**
 
