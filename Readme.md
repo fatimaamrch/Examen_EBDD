@@ -1,46 +1,76 @@
-# 📚 Résumé du projet : Gestion des maquettes d'avion en papier
+# Gestion de Stock - API
 
-## 🗂️ Résumé des tables et leur rôle dans le projet :
+**Description :**
 
-- **produits** → Stocke les infos des maquettes d’avion en papier 🛩️
-- **categories** → Permet de classer les produits 📂
-- **fournisseurs** → Liste les fournisseurs des maquettes 🏢
-- **produits_fournisseurs** → Gère les relations produit-fournisseur 🔗
-- **clients** → Stocke les informations des clients 👥
-- **commandes** → Contient les commandes des clients 📦
-- **lignes_commande** → Détaille les produits inclus dans chaque commande 📝
+Cette application est une API REST permettant de gérer un stock de produits, les commandes des clients et la gestion des utilisateurs. Elle est construite avec **Node.js, Express, et MySQL.**
 
-## 🔑 Connexion à la base de données :
+**Prérequis :**
+  - Node.js installé
+  - MySQL installé
+  - Un fichier .env contenant les variables de connexion à la base de données
 
-- Le fichier `.env` contient les informations de connexion :  
-  - `DB_HOST`  
-  - `DB_USER`  
-  - `DB_PASSWORD`  
-  - `PORT`
+**Installation :**
 
-- Les scripts SQL **`db.sql`** (structure de la base de données) et **`data.sql`** (données initiales) sont exécutés lors de l'initialisation de la base de données. 🗃️
+1 - Cloner le dépôt :
 
-## 🔧 API pour gérer les produits :
+  `git clone <url-du-repo>`
 
-- **POST /produits** : Ajouter un produit ✨
-- **GET /produits** : Récupérer tous les produits 🔍
-- **GET /produits/injection** : Recherche d'un produit par son nom (injection de données) 🔎
-- **GET /produits/:id** : Récupérer un produit spécifique 🏷️
-- **PUT /produits/:id** : Mettre à jour un produit 🔄
-- **DELETE /produits/:id** : Supprimer un produit 🗑️
+  `cd Examen_EBDD`
 
-## 👤 API pour gérer les clients :
+2 - Installer les dépendances :
 
-- **POST /clients** : Ajouter un client ✍️
-- **GET /clients** : Récupérer tous les clients 📋
+  `npm install`
 
-## 🛒 API pour gérer les commandes :
+3 - Créer un fichier .env et renseigner les informations de connexion MySQL :
 
-- **POST /commandes** : Créer une commande pour un client 🧾
-- **GET /commandes** : Récupérer toutes les commandes 🛍️
-- **GET /commandes/:id** : Récupérer une commande spécifique 📦
+  `DB_HOST=localhost`
 
-## 📝 API pour gérer les lignes de commande :
+  `DB_USER=root`
 
-- **POST /lignes_commande** : Ajouter une ligne de commande ✏️
-- **GET /lignes_commande** : Récupérer toutes les lignes de commande 🗂️
+  `DB_PASSWORD=yourpassword`
+
+  `PORT=3307`
+
+**Routes de l'API :**
+
+**Gestion des catégories**
+  - GET /categories : Récupérer toutes les catégories.
+
+**Gestion des clients**
+  - GET /clients : Récupérer tous les clients.
+  - GET /clients/:id/commandes : Récupérer les commandes d'un client spécifique.
+
+**Gestion des produits**
+  - GET /produits : Récupérer tous les produits.
+  - GET /produits/:id/commandes : Lister les commandes contenant un produit précis.
+  - GET /produits/stock-faible?seuil=<nombre> : Récupérer les produits ayant un stock faible.
+
+**Gestion des commandes**
+  - GET /commandes/:clientId : Récupérer les commandes d’un client spécifique.
+  - GET /commandes?start=<YYYY-MM-DD>&end=<YYYY-MM-DD> : Lister les commandes dans une période donnée.
+  - GET /recherche-commandes?clientId=<id>&startDate=<YYYY-MM-DD>&endDate=<YYYY-MM-DD>&statut=<statut>&produitId=<id> : Recherche avancée des commandes.
+  - POST /gestion-stock : Gérer le stock après une commande.
+
+**Statistiques des ventes**
+  - GET /statistiques-ventes?startDate=<YYYY-MM-DD>&endDate=<YYYY-MM-DD> : Obtenir des statistiques de vente.
+
+**Authentification et autorisation**
+  - POST /register : Inscription d’un nouvel utilisateur.
+  - POST /login : Connexion d’un utilisateur.
+  - GET /admin/dashboard : Accès au tableau de bord admin (protégé).
+
+**Lancement du serveur**
+
+Démarrer le serveur avec :
+`node maquette_avion.js`
+
+Le serveur démarre sur `http://localhost:3000.`
+
+
+# Technologies utilisées :
+  - **Node.js**
+  - **Express**
+  - **MySQL**
+  - **Sequelize**
+  - **Bcrypt.js** (pour le hachage des mots de passe)
+  - **JSON Web Token (JWT)** (pour l’authentification)
