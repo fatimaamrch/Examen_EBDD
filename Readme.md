@@ -31,34 +31,6 @@ Cette application est une API REST permettant de gérer un stock de produits, le
 
   `PORT=3307`
 
-**Routes de l'API :**
-
-**Gestion des catégories**
-  - GET /categories : Récupérer toutes les catégories.
-
-**Gestion des clients**
-  - GET /clients : Récupérer tous les clients.
-  - GET /clients/:id/commandes : Récupérer les commandes d'un client spécifique.
-
-**Gestion des produits**
-  - GET /produits : Récupérer tous les produits.
-  - GET /produits/:id/commandes : Lister les commandes contenant un produit précis.
-  - GET /produits/stock-faible?seuil=<nombre> : Récupérer les produits ayant un stock faible.
-
-**Gestion des commandes**
-  - GET /commandes/:clientId : Récupérer les commandes d’un client spécifique.
-  - GET /commandes?start=<YYYY-MM-DD>&end=<YYYY-MM-DD> : Lister les commandes dans une période donnée.
-  - GET /recherche-commandes?clientId=<id>&startDate=<YYYY-MM-DD>&endDate=<YYYY-MM-DD>&statut=<statut>&produitId=<id> : Recherche avancée des commandes.
-  - POST /gestion-stock : Gérer le stock après une commande.
-
-**Statistiques des ventes**
-  - GET /statistiques-ventes?startDate=<YYYY-MM-DD>&endDate=<YYYY-MM-DD> : Obtenir des statistiques de vente.
-
-**Authentification et autorisation**
-  - POST /register : Inscription d’un nouvel utilisateur.
-  - POST /login : Connexion d’un utilisateur.
-  - GET /admin/dashboard : Accès au tableau de bord admin (protégé).
-
 **Lancement du serveur**
 
 Démarrer le serveur avec :
