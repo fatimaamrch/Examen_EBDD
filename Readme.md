@@ -1,46 +1,66 @@
-# 📚 Résumé du projet : Gestion des maquettes d'avion en papier
+# Gestion de Stock - API 
 
-## 🗂️ Résumé des tables et leur rôle dans le projet :
+**Description :**
 
-- **produits** → Stocke les infos des maquettes d’avion en papier 🛩️
-- **categories** → Permet de classer les produits 📂
-- **fournisseurs** → Liste les fournisseurs des maquettes 🏢
-- **produits_fournisseurs** → Gère les relations produit-fournisseur 🔗
-- **clients** → Stocke les informations des clients 👥
-- **commandes** → Contient les commandes des clients 📦
-- **lignes_commande** → Détaille les produits inclus dans chaque commande 📝
+Cette application est une API REST permettant de gérer un stock de produits, les commandes des clients et la gestion des utilisateurs. Elle est construite avec   **Node.js**, **Express** et **MySQL**.
 
-## 🔑 Connexion à la base de données :
+**Fonctionnalités :**
 
-- Le fichier `.env` contient les informations de connexion :  
-  - `DB_HOST`  
-  - `DB_USER`  
-  - `DB_PASSWORD`  
-  - `PORT`
+- **Gestion des produits**
+  - Ajouter un produit
+  - Obtenir tous les produits
+  - Rechercher un produit par nom
+  - Obtenir un produit par ID
+  - Mettre à jour un produit
+  - Supprimer un produit
+  
+- **Gestion des clients**
+  - Ajouter un client
+  - Obtenir tous les clients
+  
+- **Gestion des commandes**
+  - Créer une commande
+  - Obtenir toutes les commandes
+  - Obtenir une commande par ID
+  
+- **Gestion des lignes de commande**
+  - Ajouter une ligne de commande
+  - Obtenir toutes les lignes de commande
 
-- Les scripts SQL **`db.sql`** (structure de la base de données) et **`data.sql`** (données initiales) sont exécutés lors de l'initialisation de la base de données. 🗃️
+## Prérequis
 
-## 🔧 API pour gérer les produits :
+- Node.js
+- MySQL
+- dotenv (pour la gestion des variables d'environnement)
 
-- **POST /produits** : Ajouter un produit ✨
-- **GET /produits** : Récupérer tous les produits 🔍
-- **GET /produits/injection** : Recherche d'un produit par son nom (injection de données) 🔎
-- **GET /produits/:id** : Récupérer un produit spécifique 🏷️
-- **PUT /produits/:id** : Mettre à jour un produit 🔄
-- **DELETE /produits/:id** : Supprimer un produit 🗑️
+## Installation
 
-## 👤 API pour gérer les clients :
+1 -  Clonez le repository :
 
-- **POST /clients** : Ajouter un client ✍️
-- **GET /clients** : Récupérer tous les clients 📋
+   `git clone https://github.com/fatimaamrch/Examen_EBDD.git`
 
-## 🛒 API pour gérer les commandes :
+2 - Allez dans le répertoire du projet :
 
-- **POST /commandes** : Créer une commande pour un client 🧾
-- **GET /commandes** : Récupérer toutes les commandes 🛍️
-- **GET /commandes/:id** : Récupérer une commande spécifique 📦
+  `cd Examen_EBDD`
 
-## 📝 API pour gérer les lignes de commande :
+3 - Installez les dépendances : 
 
-- **POST /lignes_commande** : Ajouter une ligne de commande ✏️
-- **GET /lignes_commande** : Récupérer toutes les lignes de commande 🗂️
+  `npm install`
+
+4 - Créez un fichier .env à la racine du projet et ajoutez les variables suivantes :
+
+  `DB_HOST=localhost`
+
+  `DB_USER=ton_utilisateur_mysql`
+
+  `DB_PASSWORD=ton_mot_de_passe_mysql`
+
+  `DB_PORT=3306`
+
+**Lancer l'application :**
+
+Pour démarrer le serveur, exécutez la commande suivante :
+
+  `node maquette_avion.js`
+
+
